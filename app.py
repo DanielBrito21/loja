@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 import urllib.parse
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta_aqui'  # Necessário para o carrinho (session)
@@ -28,8 +29,56 @@ def init_db():
         imagem TEXT,
         imagens_adicionais TEXT
     )''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+    )''')
     conn.commit()
     conn.close()
+
+def adicionar_usuario(username, password):
+    try:
+        hashed_password = generate_password_hash(password)
+        conn = get_db_connection()
+        conn.execute('INSERT INTO usuarios (username, password) VALUES (?, ?)', (username, hashed_password))
+        conn.commit()
+        print(f"Usuário {username} adicionado com sucesso.")
+    except Exception as e:
+        print(f"Erro ao adicionar usuário: {e}")
+    finally:
+        conn.close()
+
+#login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # Busca o usuário no banco de dados
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM usuarios WHERE username = ?', (username,)).fetchone()
+        conn.close()
+        # Verifica se o usuário existe e se a senha está correta
+        if user and check_password_hash(user['password'], password):
+            session['user_id'] = user['id']  # Exemplo de início de sessão
+            flash('Login bem-sucedido!', 'success')
+            return redirect(url_for('admin'))
+        else:
+            flash('Credenciais inválidas', 'error')
+    return render_template('login.html')
+
+
+
+#logout
+@app.route('/logout')
+def logout():
+    if 'user_id' not in session:
+        flash('Você não está logado.', 'error')
+        return redirect(url_for('login'))
+    session.pop('user_id', None)
+    flash('Você foi desconectado com sucesso.', 'success')
+    return redirect(url_for('login'))
 
 # Função para obter categorias (usada em todas as rotas)
 def get_categorias():
@@ -160,7 +209,13 @@ def finalizar_compra():
 # Administração
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
+
+
     conn = get_db_connection()
+    
+    if 'user_id' not in session:
+        flash('Por favor, faça login para acessar esta página.', 'error')
+        return redirect(url_for('login'))
     
     if request.method == 'POST' and 'nome' in request.form:
         nome = request.form['nome']
