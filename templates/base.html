@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Loja Online{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <!-- Seção Esquerda: Logo e Nome -->
+            <div class="nav-left">
+                <a href="{{ url_for('index') }}" class="logo-link">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo da Loja" class="logo">
+                    <span class="store-name">Loja Online</span>
+                </a>
+            </div>
+            <!-- Seção Central: Busca -->
+            <div class="nav-center">
+                <form method="GET" action="{{ url_for('index') }}" class="search-form">
+                    <input type="text" name="busca" placeholder="Buscar produto..." class="search-input" aria-label="Buscar produto">
+                    <button type="submit" class="search-btn" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            <!-- Seção Direita: Carrinho com Texto -->
+            <div class="nav-right">
+                <a href="{{ url_for('carrinho') }}" class="cart-icon" aria-label="Ver carrinho">
+                    <span class="cart-text">Carrinho</span>
+                    <i class="fas fa-shopping-cart"></i>
+                    {% if session.get('carrinho') %}
+                        <span class="cart-count">{{ session['carrinho'] | length }}</span>
+                    {% else %}
+                        <span class="cart-count">0</span>
+                    {% endif %}
+                </a>
+    
+            </div>
+        </div>
+    </header>
+ 
+    <main class="container">
+        <div id="mensagem-adicionar" class="mensagem-carrinho">Item adicionado ao carrinho!</div>
+        <div id="mensagem-remover" class="mensagem-carrinho">Item removido do carrinho!</div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+        
+    </main>
+    <script>
+// Função para exibir a mensagem de adicionar
+function mostrarMensagemAdicionar() {
+    var mensagem = document.getElementById('mensagem-adicionar');
+    mensagem.style.opacity = '1'; // Torna a mensagem visível
+    setTimeout(function() {
+        mensagem.style.opacity = '0'; // Esconde após 3 segundos
+    }, 3000);
+}
+
+// Função para exibir a mensagem de remover
+function mostrarMensagemRemover() {
+    var mensagem = document.getElementById('mensagem-remover');
+    mensagem.style.opacity = '1'; // Torna a mensagem visível
+    setTimeout(function() {
+        mensagem.style.opacity = '0'; // Esconde após 3 segundos
+    }, 3000);
+}
+
+// Associar as funções aos botões
+document.addEventListener('DOMContentLoaded', function() {
+    // Botões de adicionar ao carrinho
+    document.querySelectorAll('.adicionar-carrinho').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            mostrarMensagemAdicionar();
+        });
+    });
+
+    // Botões de remover do carrinho
+    document.querySelectorAll('.remover-carrinho').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            mostrarMensagemRemover();
+        });
+    });
+});
+    </script>
+
+</body>
+</html>

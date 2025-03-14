@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Loja Online - Carrinho{% endblock %}
+
+{% block content %}
+    <div class="carrinho">
+        <h1>Carrinho de Compras</h1>
+    </div>
+    {% if carrinho_itens and carrinho_itens|length > 0 %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Imagem</th>
+                    <th>Nome</th>
+                    <th>Categoria</th>
+                    <th>Preço Unitário</th>
+                    <th>Quantidade</th>
+                    <th>Subtotal</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in carrinho_itens %}
+                    <tr>
+                        <td>
+                            {% if item.produto.imagem %}
+                                <img src="{{ url_for('static', filename='uploads/' + item.produto.imagem) }}" alt="{{ item.produto.nome }}" style="width: 60px; height: auto;">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/default.jpg') }}" alt="Imagem não disponível" style="width: 60px; height: auto;">
+                            {% endif %}
+                        </td>
+                        <td>{{ item.produto.nome }}</td>
+                        <td>{{ item.produto.categoria }}</td>
+                        <td>R$ {{ "%.2f" | format(item.preco_unitario) }}</td>
+                        <td>{{ item.quantidade }}</td>
+                        <td>R$ {{ "%.2f" | format(item.subtotal) }}</td>
+                        <td>
+                            <form action="{{ url_for('remover_carrinho', id=item.produto.id) }}" method="POST">
+                                <button type="submit" class="remover-carrinho" style="background-color: var(--error-color); padding: 5px 10px;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h2 style="font-size: 24px; color: var(--error-color); margin-top: 20px;">Total: R$ {{ "%.2f" | format(total) }}</h2>
+        <div style="position: sticky; bottom: 20px; text-align: center; background: white; padding: 15px; box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);">
+            <a href="{{ url_for('index') }}" class="carrinho-btn">Continuar Comprando</a>
+            <a href="{{ url_for('finalizar_compra') }}" class="carrinho-btn">Finalizar Compra</a>
+        </div>
+    {% else %}
+        <p>O carrinho está vazio.</p>
+        <a href="{{ url_for('index') }}" class="carrinho-btn">Voltar à Loja</a>
+    {% endif %}
+{% endblock %}

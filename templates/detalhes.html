@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Loja Online - Detalhes do Produto{% endblock %}
+
+{% block content %}
+    <div class="detalhes">
+        <div class="galeria">
+            <!-- Imagem principal -->
+            <img id="imagem-principal" src="{{ url_for('static', filename='uploads/' + produto['imagem']) }}" alt="{{ produto['nome'] }}">
+            <!-- Miniaturas -->
+            <div class="miniaturas">
+                <img src="{{ url_for('static', filename='uploads/' + produto['imagem']) }}" onclick="mudarImagem(this)" alt="Miniatura">
+                {% if produto['imagens_adicionais'] %}
+                    {% for img in produto['imagens_adicionais'].split(',') %}
+                        <img src="{{ url_for('static', filename='uploads/' + img.strip()) }}" onclick="mudarImagem(this)" alt="Miniatura">
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <h1>{{ produto['nome'] }}</h1>
+            <p>Descrição: {{ produto['descricao'] }}</p>
+            <p>Categoria: {{ produto['categoria'] }}</p>
+            <p class="preco">
+                {% if produto['preco_promocional'] %}
+                    {% set desconto = ((produto['preco'] - produto['preco_promocional']) / produto['preco'] * 100) | round(0) %}
+                    <del class="preco-antigo">R$ {{ "%.2f" | format(produto['preco']) }}</del>
+                    <span class="preco-promocional">R$ {{ "%.2f" | format(produto['preco_promocional']) }} </span>
+                    <span class="desconto">{{ desconto }}% OFF</span>
+                {% else %}
+                    R$ {{ "%.2f" | format(produto['preco']) }}
+                {% endif %}
+            </p>
+            <p>Estoque: {{ produto['estoque'] }}</p>
+            <form method="POST" action="{{ url_for('adicionar_carrinho', id=produto['id']) }}">
+                <input type="number" name="quantidade" min="1" max="{{ produto['estoque'] }}" value="1">
+                <button class="adicionar-carrinho" type="submit">Adicionar ao Carrinho</button>
+            </form>
+        </div>
+    </div>
+    <a href="{{ url_for('index') }}" class="carrinho-btn">Voltar à Loja</a>
+
+    <!-- JavaScript para trocar a imagem principal -->
+    <script>
+        function mudarImagem(element) {
+            var imagemPrincipal = document.getElementById('imagem-principal');
+            imagemPrincipal.src = element.src;
+        }
+    </script>
+{% endblock %}

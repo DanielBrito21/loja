@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Loja Online - Home{% endblock %}
+
+{% block content %}
+   <!-- Sidebar com Apenas Categorias -->
+   <div class="sidebar">
+    <h2>Categorias</h2>
+    <nav>
+        <!-- Link para "Todas" -->
+        <a href="{{ url_for('index') }}" 
+           class="{% if not selected_categoria %}active{% endif %}">
+           Todas
+        </a><br>
+        <!-- Links para cada categoria -->
+        {% for cat in categorias %}
+            <a href="{{ url_for('index', categoria=cat['categoria']) }}" 
+               class="{% if selected_categoria and cat['categoria'].strip().lower() == selected_categoria.strip().lower() %}active{% endif %}">
+               {{ cat['categoria'] }}
+            </a><br>
+        {% endfor %}
+    </nav>
+</div>
+    <!-- Lista de Produtos -->
+    <div class="produtos">
+        {% for produto in produtos %}
+        <div class="produto">
+            <a href="{{ url_for('produto_detalhes', id=produto['id']) }}">
+                <img src="{{ url_for('static', filename='uploads/' + produto['imagem']) }}" alt="{{ produto['nome'] }}">
+            </a>
+            <h2>{{ produto['nome'] }}</h2>
+            <p>{{ produto['categoria'] }}</p>
+            <p class="preco">
+                {% if produto['preco_promocional'] %}
+                    {% set desconto = ((produto['preco'] - produto['preco_promocional']) / produto['preco'] * 100) | round(0) %}
+                    <del class="preco-antigo">R$ {{ "%.2f" | format(produto['preco']) }}</del>
+                    <span class="preco-promocional">R$ {{ "%.2f" | format(produto['preco_promocional']) }} </span>
+                    <span class="desconto">{{ desconto }}% OFF</span>
+                {% else %}
+                    R$ {{ "%.2f" | format(produto['preco']) }}
+                {% endif %}
+            </p>
+            <p>Estoque: {{ produto['estoque'] }}</p>
+            <form method="POST" action="{{ url_for('adicionar_carrinho', id=produto['id']) }}">
+                <input type="number" name="quantidade" min="1" max="{{ produto['estoque'] }}" value="1">
+                <button type="submit" class="adicionar-carrinho">Adicionar ao Carrinho</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    <a href="{{ url_for('carrinho') }}" class="carrinho-btn">Ver Carrinho</a>
+{% endblock %}

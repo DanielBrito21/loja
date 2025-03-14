@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Administração de Produtos</h1>
+    
+    <form method="POST" enctype="multipart/form-data">
+        <label>Nome:</label><input type="text" name="nome" required><br>
+        <label>Descrição:</label><textarea name="descricao"></textarea><br>
+        <label>Preço (R$):</label><input type="number" step="0.01" name="preco" required><br>
+        <label>Preço Promocional (R$):</label><input type="number" step="0.01" name="preco_promocional"><br>
+        <label>Estoque:</label><input type="number" name="estoque" required><br>
+        <label>Categoria:</label>
+        <select name="categoria" required>
+            <option value="Pias">Pias</option>
+            <option value="Vasos">Vasos</option>
+            <option value="Espelhos">Espelhos</option>
+            <option value="Móveis">Móveis</option>
+        </select><br>
+        <label for="imagem">Imagem Principal:</label>
+        <input type="file" name="imagem" accept="image/*" required>
+        <label for="imagens_adicionais">Imagens Adicionais (múltiplas):</label>
+        <input type="file" name="imagens_adicionais[]" multiple accept="image/*">
+        <button type="submit">Adicionar Produto</button>
+    </form>
+    
+    <h2>Produtos Cadastrados</h2>
+    <div class="produtos">
+        {% for produto in produtos %}
+        <div class="produto">
+            <img src="{{ url_for('static', filename='uploads/' + produto['imagem']) }}" alt="{{ produto['nome'] }}">
+            <h2>{{ produto['nome'] }}</h2>
+            <p>{{ produto['categoria'] }}</p>
+            <p class="preco">
+                {% if produto['preco_promocional'] %}
+                <span class="preco-antigo">R$ {{ "%.2f" | format(produto['preco']) }}</span>
+                R$ {{ "%.2f" | format(produto['preco_promocional']) }}
+                {% else %}
+                R$ {{ "%.2f" | format(produto['preco']) }}
+                {% endif %}
+            </p>
+            <p>Estoque: {{ produto['estoque'] }}</p>
+            <form method="POST">
+                <input type="hidden" name="delete_id" value="{{ produto['id'] }}">
+                <button type="submit" onclick="return confirm('Tem certeza que deseja remover?')">Remover</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
