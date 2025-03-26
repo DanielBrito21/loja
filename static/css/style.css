@@ -19,7 +19,7 @@ body {
 :root {
     --primary-color: #1a3c34;
     --secondary-color: #2d5a52;
-    --accent-color: #00c4b4;
+    --accent-color: #01a738;
     --error-color: #e63946;
     --success-color: #28a745;
     --border-color: #e0e0e0;
@@ -50,7 +50,7 @@ main {
    ========================================================================== */
 
 header {
-    background-color: var(--primary-color);
+    background-color: var(--accent-color);
     color: white;
     position: fixed;
     width: 100%;
