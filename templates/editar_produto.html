@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Produto</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Editar Produto</h1>
+    <form method="POST">
+        <label>Nome:</label>
+        <input type="text" name="nome" value="{{ produto['nome'] }}" required><br>
+        <label>Descrição:</label>
+        <textarea name="descricao">{{ produto['descricao'] }}</textarea><br>
+        <label>Preço (R$):</label>
+        <input type="number" step="0.01" name="preco" value="{{ produto['preco'] }}" required><br>
+        <label>Preço Promocional (R$):</label>
+        <input type="number" step="0.01" name="preco_promocional" value="{{ produto['preco_promocional'] }}"><br>
+        <label>Estoque:</label>
+        <input type="number" name="estoque" value="{{ produto['estoque'] }}" required><br>
+        <label>Categoria:</label>
+        <select name="categoria" required>
+            <option value="Pias" {% if produto['categoria'] == 'Pias' %}selected{% endif %}>Pias</option>
+            <option value="Vasos" {% if produto['categoria'] == 'Vasos' %}selected{% endif %}>Vasos</option>
+            <option value="Espelhos" {% if produto['categoria'] == 'Espelhos' %}selected{% endif %}>Espelhos</option>
+            <option value="Móveis" {% if produto['categoria'] == 'Móveis' %}selected{% endif %}>Móveis</option>
+        </select><br>
+        <button type="submit">Salvar Alterações</button>
+        <button href="{{ url_for('admin') }}">Cancelar</button>
+    </form>
+</body>
+</html>

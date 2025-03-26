@@ -84,7 +84,9 @@ header {
 }
 
 .logo {
-    height: 60px;
+    height: 40px;
+    width: 40px;
+    border-radius: 20px;
     width: auto;
     transition: transform 0.3s;
 }
@@ -96,6 +98,7 @@ header {
 .store-name {
     font-size: 20px;
     font-weight: 500;
+    padding-left: 10px;
 }
 
 .nav-center {
@@ -575,6 +578,18 @@ form button:hover {
     transform: translateY(-2px);
 }
 
+.btn-editar {
+    background-color: #4CAF50; /* Verde, por exemplo */
+    color: white;
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: 3px;
+    margin-left: 10px;
+}
+
+.btn-editar:hover {
+    background-color: #45a049;
+}
 /* ==========================================================================
    Botões
    ========================================================================== */

@@ -49,28 +49,24 @@ def adicionar_usuario(username, password):
     finally:
         conn.close()
 
-#login
+# Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        # Busca o usuário no banco de dados
         conn = get_db_connection()
         user = conn.execute('SELECT * FROM usuarios WHERE username = ?', (username,)).fetchone()
         conn.close()
-        # Verifica se o usuário existe e se a senha está correta
         if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['id']  # Exemplo de início de sessão
+            session['user_id'] = user['id']
             flash('Login bem-sucedido!', 'success')
             return redirect(url_for('admin'))
         else:
             flash('Credenciais inválidas', 'error')
     return render_template('login.html')
 
-
-
-#logout
+# Logout
 @app.route('/logout')
 def logout():
     if 'user_id' not in session:
@@ -80,7 +76,7 @@ def logout():
     flash('Você foi desconectado com sucesso.', 'success')
     return redirect(url_for('login'))
 
-# Função para obter categorias (usada em todas as rotas)
+# Função para obter categorias
 def get_categorias():
     conn = get_db_connection()
     categorias = conn.execute('SELECT DISTINCT categoria FROM produtos').fetchall()
@@ -94,19 +90,16 @@ def index():
     query = 'SELECT * FROM produtos WHERE estoque > 0'
     params = []
 
-    # Filtro por categoria
     categoria = request.args.get('categoria')
     if categoria and categoria != 'todos':
         query += ' AND categoria = ?'
         params.append(categoria)
 
-    # Busca por nome
     busca = request.args.get('busca')
     if busca:
         query += ' AND nome LIKE ?'
         params.append(f'%{busca}%')
 
-    # Filtro por preço
     preco_min = request.args.get('preco_min', type=float)
     preco_max = request.args.get('preco_max', type=float)
     if preco_min:
@@ -120,7 +113,6 @@ def index():
     categorias = get_categorias()
     conn.close()
 
-    # Defina a categoria selecionada para o template
     selected_categoria = categoria if categoria != 'todos' else None
     return render_template('index.html', produtos=produtos, categorias=categorias, selected_categoria=selected_categoria)
 
@@ -167,10 +159,8 @@ def carrinho():
                     'subtotal': subtotal,
                     'preco_unitario': preco
                 })
-                print(f"Item no carrinho: ID={id}, Quantidade={quantidade}, Produto={produto['nome']}")
     categorias = get_categorias()
     conn.close()
-    print(f"Tipo de carrinho_itens: {type(carrinho_itens)}, Conteúdo: {carrinho_itens}")
     return render_template('carrinho.html', carrinho_itens=carrinho_itens, total=total, categorias=categorias)
 
 # Remover item do carrinho
@@ -200,17 +190,13 @@ def finalizar_compra():
     mensagem += f"Total: R$ {total:.2f}"
     conn.close()
     
-    # Codificar a mensagem para ser segura em URLs
     mensagem_codificada = urllib.parse.quote(mensagem)
-    
-    session.pop('carrinho', None)  # Limpa o carrinho após finalizar
+    session.pop('carrinho', None)
     return redirect(f"https://wa.me/5521983250345?text={mensagem_codificada}")
 
 # Administração
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
-
-
     conn = get_db_connection()
     
     if 'user_id' not in session:
@@ -224,10 +210,9 @@ def admin():
         preco_promocional = float(request.form['preco_promocional']) if request.form['preco_promocional'] else None
         estoque = int(request.form['estoque'])
         categoria = request.form['categoria']
-        imagem = request.files['imagem']  # Imagem principal
-        imagens_adicionais = request.files.getlist('imagens_adicionais[]')  # Lista de imagens adicionais
+        imagem = request.files['imagem']
+        imagens_adicionais = request.files.getlist('imagens_adicionais[]')
         
-        # Salvar a imagem principal
         if imagem:
             imagem_path = os.path.join(app.config['UPLOAD_FOLDER'], imagem.filename)
             imagem.save(imagem_path)
@@ -235,7 +220,6 @@ def admin():
         else:
             imagem_nome = None
         
-        # Salvar as imagens adicionais
         imagens_adicionais_nomes = []
         for img in imagens_adicionais:
             if img:
@@ -243,10 +227,8 @@ def admin():
                 img.save(img_path)
                 imagens_adicionais_nomes.append(img.filename)
         
-        # Converter a lista de nomes em uma string separada por vírgulas
         imagens_adicionais_str = ','.join(imagens_adicionais_nomes) if imagens_adicionais_nomes else None
         
-        # Inserir no banco de dados, incluindo imagens_adicionais
         conn.execute('INSERT INTO produtos (nome, descricao, preco, preco_promocional, estoque, categoria, imagem, imagens_adicionais) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                      (nome, descricao, preco, preco_promocional, estoque, categoria, imagem_nome, imagens_adicionais_str))
         conn.commit()
@@ -260,6 +242,44 @@ def admin():
     categorias = get_categorias()
     conn.close()
     return render_template('admin.html', produtos=produtos, categorias=categorias)
+
+# Nova rota para editar produtos
+@app.route('/editar_produto/<int:id>', methods=['GET', 'POST'])
+def editar_produto(id):
+    if 'user_id' not in session:
+        flash('Por favor, faça login para acessar esta página.', 'error')
+        return redirect(url_for('login'))
+    
+    conn = get_db_connection()
+    if request.method == 'POST':
+        nome = request.form['nome']
+        descricao = request.form['descricao']
+        preco = float(request.form['preco'])
+        preco_promocional = request.form['preco_promocional']
+        if preco_promocional:
+            preco_promocional = float(preco_promocional)
+        else:
+            preco_promocional = None
+        estoque = int(request.form['estoque'])
+        categoria = request.form['categoria']
+        
+        # Atualizar o produto no banco de dados
+        conn.execute('''
+            UPDATE produtos 
+            SET nome = ?, descricao = ?, preco = ?, preco_promocional = ?, estoque = ?, categoria = ?
+            WHERE id = ?
+        ''', (nome, descricao, preco, preco_promocional, estoque, categoria, id))
+        conn.commit()
+        conn.close()
+        flash('Produto atualizado com sucesso!', 'success')
+        return redirect(url_for('admin'))
+    else:
+        produto = conn.execute('SELECT * FROM produtos WHERE id = ?', (id,)).fetchone()
+        conn.close()
+        if produto is None:
+            flash('Produto não encontrado!', 'error')
+            return redirect(url_for('admin'))
+        return render_template('editar_produto.html', produto=produto)
 
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
