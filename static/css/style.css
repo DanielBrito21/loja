@@ -20,6 +20,7 @@ body {
     --primary-color: #1a3c34;
     --secondary-color: #2d5a52;
     --accent-color: #01a738;
+    --hover-color: #01a7388f;
     --error-color: #e63946;
     --success-color: #28a745;
     --border-color: #e0e0e0;
@@ -248,7 +249,7 @@ header {
 }
 
 .sidebar nav a:hover {
-    background-color: var(--accent-color);
+    background-color: var(--hover-color);
     color: white;
 }
 
